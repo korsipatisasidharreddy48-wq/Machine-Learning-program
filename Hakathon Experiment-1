@@ -1,0 +1,90 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier, plot_tree, export_text
+from sklearn.preprocessing import LabelEncoder
+
+# 1. Create the Placement Dataset
+placement_data = {
+    'CGPA': ['High', 'High', 'Low', 'Medium', 'Medium', 'High', 'Low', 'Medium'],
+    'Attendance': ['Good', 'Poor', 'Good', 'Good', 'Poor', 'Good', 'Poor', 'Good'],
+    'Communication': ['Strong', 'Weak', 'Strong', 'Strong', 'Weak', 'Strong', 'Weak', 'Weak'],
+    'Aptitude': ['High', 'Low', 'High', 'Medium', 'Low', 'Medium', 'Low', 'High'],
+    'Placed': ['Yes', 'No', 'Yes', 'Yes', 'No', 'Yes', 'No', 'Yes']
+}
+
+df_placement = pd.DataFrame(placement_data)
+
+# 2. Encoding categorical variables
+placement_encoders = {}
+df_p_encoded = df_placement.copy()
+
+for col in df_p_encoded.columns:
+    le = LabelEncoder()
+    df_p_encoded[col] = le.fit_transform(df_p_encoded[col])
+    placement_encoders[col] = le
+
+# 3. Features and Target
+X_p = df_p_encoded.drop('Placed', axis=1)
+y_p = df_p_encoded['Placed']
+
+# 4. Train the Model (Concept Learning via Decision Tree)
+placement_model = DecisionTreeClassifier(criterion='entropy', random_state=42)
+placement_model.fit(X_p, y_p)
+
+# 5. Visualize the Tree
+plt.figure(figsize=(10, 6))
+plot_tree(placement_model, 
+          feature_names=X_p.columns, 
+          class_names=list(placement_encoders['Placed'].classes_), 
+          filled=True, 
+          rounded=True)
+plt.title("Student Placement Prediction Tree")
+plt.show()
+
+# 6. Display Rules
+print("Placement Prediction Rules:")
+print(export_text(placement_model, feature_names=list(X_p.columns)))
+output:
+# Student Placement Prediction using Decision Tree
+
+## Decision Tree Output
+
+The following image shows the Decision Tree model used for predicting student placement based on attendance.
+
+![Student Placement Prediction Tree](decision_tree.png)
+
+## Description
+
+- **Algorithm:** Decision Tree Classifier
+- **Criterion:** Entropy
+- **Feature Used:** Attendance
+- **Target Variable:** Placement (Yes/No)
+
+### Root Node
+- Feature: Attendance
+- Condition: Attendance <= 0.5
+- Entropy: 0.954
+- Samples: 8
+- Class Distribution: [3 No, 5 Yes]
+- Predicted Class: Yes
+
+### Left Leaf Node
+- Condition: Attendance <= 0.5
+- Entropy: 0.0
+- Samples: 5
+- Class Distribution: [0 No, 5 Yes]
+- Predicted Class: Yes
+
+### Right Leaf Node
+- Condition: Attendance > 0.5
+- Entropy: 0.0
+- Samples: 3
+- Class Distribution: [3 No, 0 Yes]
+- Predicted Class: No
+
+## Result
+
+The Decision Tree predicts student placement based on attendance.
+
+- Attendance ≤ 0.5 → **Placement = Yes**
+- Attendance > 0.5 → **Placement = No**
